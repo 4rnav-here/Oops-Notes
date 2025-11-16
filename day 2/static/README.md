@@ -259,6 +259,326 @@ Reads `.class` bytecode into memory.
 
 ---
 
+
+Below is a **fully rewritten, deeply detailed, structured explanation** of the two screenshots you provided — *merged into your static notes with additional examples, diagrams, and extended explanations using other data structures (ArrayList, HashMap, LinkedList, custom classes, etc.)*.
+
+You can directly paste this section into your notes.
+
+---
+
+# 🔥 **Static Context vs Non-static Context**
+
+
+# 📌 **1. Why you cannot call a NON-STATIC method from a STATIC method**
+
+Example Code
+
+```java
+static void fun() {
+    greeting(); // ❌ not allowed
+    // because greeting() requires an object (instance)
+    // but fun() does not have an object context
+}
+
+void greeting() {
+    fun(); 
+    System.out.println("Hello world");
+}
+```
+
+## ✔ Why this causes an error?
+
+### ⚠ Static methods belong to the **class**, not to any object.
+
+* They run **before any object exists**.
+* They have **no `this`**.
+* They have **no instance context**.
+
+### ❌ Therefore:
+
+A static method **CANNOT call** a non-static method **unless** you give it an object explicitly.
+
+Because non-static methods require an object to operate on.
+
+---
+
+# 📘 **Complete Explanation**
+
+* `greeting()` is an **instance method** → it requires an object to run.
+* `fun()` is a **static method** → it exists even when no object exists.
+* So when you write `greeting()` inside `fun()`:
+  Java asks:
+
+  > “Which object’s `greeting()` should I run?”
+
+And because there is no object → ❌ ERROR.
+
+---
+
+# ✔ How to fix it? (Shown in screenshot)
+
+```java
+static void fun() {
+    Main obj = new Main(); // creating an object
+    obj.greeting();         // calling non-static through object reference
+}
+```
+
+✔ This works because now you explicitly tell Java **which object’s greeting()** you want to call.
+
+---
+
+# 🧠 Deeper Understanding Through Memory Diagram
+
+```
+Static Area (Class Level)            Heap (Object Level)
+---------------------------------------------------------------
+fun() method                         obj.greeting()
+main() method                        obj.message
+Human.population (static)            obj.salary
+                                     obj.age
+```
+
+`fun()` lives in the **static area**, NOT tied to any object.
+`greeting()` lives in the **object**, so you NEED an object.
+
+---
+
+# 📌 2. Static variables shared across objects (From second screenshot)
+
+Example code:
+
+```java
+Human kunal = new Human(...);
+Human rahul = new Human(...);
+Human arpit = new Human(...);
+
+System.out.println(Human.population); // prints same value every time
+```
+
+### ✔ Explanation:
+
+Every time a new `Human` object is created, the constructor updates `population`:
+
+```java
+class Human {
+    static int population = 0;
+
+    Human(...) {
+        population++;
+    }
+}
+```
+
+Static variable `population` lives **in class memory**, NOT inside each object.
+
+Thus:
+
+```
+population = 3
+```
+
+No matter which object prints it, the output is same.
+
+---
+
+# 🧠 Using a Different Example: ArrayList
+
+```java
+class Test {
+    static ArrayList<String> globalList = new ArrayList<>();
+}
+```
+
+Now:
+
+```java
+Test t1 = new Test();
+Test t2 = new Test();
+
+Test.globalList.add("hello");
+Test.globalList.add("world");
+
+System.out.println(t1.globalList);  
+System.out.println(t2.globalList);
+```
+
+**Output**:
+
+```
+[hello, world]
+[hello, world]
+```
+
+Because:
+
+* `t1.globalList` and `t2.globalList` both point to the **same** ArrayList in static memory.
+
+---
+
+# 🧠 Another Data Structure Example: HashMap
+
+```java
+class Cache {
+    static HashMap<Integer, String> map = new HashMap<>();
+}
+```
+
+Now:
+
+```java
+Cache.map.put(1, "Arnav");
+Cache.map.put(2, "Rahul");
+
+System.out.println(Cache.map);
+```
+
+Every object of `Cache` will see the same `map`.
+
+---
+
+# 📌 3. General Rule From Both Screenshots
+
+### ✔ You can access static members using:
+
+* Class name
+* Object reference (but not recommended)
+
+### ✔ You cannot access non-static members without:
+
+* Creating an instance
+* Or receiving an instance as a parameter
+
+---
+
+# 📘 Additional Example Using LinkedList
+
+```java
+class Database {
+    LinkedList<String> names;       // instance member
+    static int entriesCount = 0;    // static shared member
+
+    Database() {
+        names = new LinkedList<>();
+    }
+
+    void addName(String name) {
+        names.add(name);
+        entriesCount++;
+    }
+
+    static void showEntriesCount() {
+        System.out.println(entriesCount);
+        // names.add("x");  // ❌ ERROR: instance variable in static method
+    }
+}
+```
+
+Reason:
+
+* `names` is per-object
+* `entriesCount` is per-class
+
+Calling:
+
+```java
+Database d1 = new Database();
+Database d2 = new Database();
+
+d1.addName("kunal");
+d2.addName("rahul");
+
+Database.showEntriesCount();
+```
+
+Output:
+
+```
+2
+```
+
+---
+
+# 📌 4. Biggest Concept Shown in the Screenshot
+
+### 🔥 **STATIC CONTEXT → Class level → Cannot access object level**
+
+### 🔥 **NON-STATIC CONTEXT → Object level → Can access class level**
+
+This is the golden rule.
+
+---
+
+## 🔥 **Static Context vs Non-Static Context **
+
+### 1. A static method belongs to the class, not to objects.
+
+* It can run before any object exists.
+* It has no `this`, no `super`.
+* It cannot access object-level (non-static) members directly.
+
+### 2. A static method cannot call a non-static method.
+
+Because non-static methods require an object instance.
+
+```java
+static void fun() {
+    greeting(); // ❌ ERROR: requires an object
+}
+```
+
+To fix:
+
+```java
+static void fun() {
+    Main obj = new Main();
+    obj.greeting(); // ✔ accessing through object
+}
+```
+
+### 3. Static variables are shared across all objects.
+
+For example:
+
+```java
+static int population;
+```
+
+Every object reads/writes the SAME memory location.
+
+This also applies if the static value is:
+
+* A primitive
+* An ArrayList
+* A HashMap
+* A LinkedList
+* A custom object
+
+Example:
+
+```java
+class Cache {
+    static HashMap<Integer, String> map = new HashMap<>();
+}
+```
+
+Every object shares the exact same `map`.
+
+### 4. Instance methods can call static methods freely.
+
+Because static methods already exist.
+
+### 5. Static context has no access to per-object memory.
+
+Thus it cannot use:
+
+* instance variables
+* instance methods
+* `this`
+* `super`
+
+---
+
 # 📌 10. Static Method Hiding (Not Overriding)
 
 This is **critical for interviews**:
